@@ -1,5 +1,5 @@
 const { neon } = require('@neondatabase/serverless');
-const { slotyProDen } = require('./_hodiny');
+const { slotyProDen, nyniVPraze } = require('./_hodiny');
 
 function jeValidniEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -55,6 +55,19 @@ module.exports = async (req, res) => {
   if (!dostupneSloty.includes(cas)) {
     res.status(400).json({ ok: false, error: 'Zvolený termín je mimo otevírací dobu.' });
     return;
+  }
+
+  const { datum: dnesniDatum, minutyOdPulnoci: ted } = nyniVPraze();
+  if (datum < dnesniDatum) {
+    res.status(400).json({ ok: false, error: 'Vybrané datum je už v minulosti.' });
+    return;
+  }
+  if (datum === dnesniDatum) {
+    const [h, m] = cas.split(':').map(Number);
+    if (h * 60 + m <= ted) {
+      res.status(400).json({ ok: false, error: 'Vybraný čas už dnes uplynul, zvolte prosím jiný.' });
+      return;
+    }
   }
 
   try {

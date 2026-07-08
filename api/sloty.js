@@ -1,5 +1,5 @@
 const { neon } = require('@neondatabase/serverless');
-const { slotyProDen } = require('./_hodiny');
+const { slotyProDen, nyniVPraze } = require('./_hodiny');
 
 module.exports = async (req, res) => {
   if (req.method !== 'GET') {
@@ -24,9 +24,8 @@ module.exports = async (req, res) => {
     const obsazene = await sql`SELECT cas FROM bookings WHERE datum = ${datum}`;
     const obsazeneSet = new Set(obsazene.map((r) => r.cas.slice(0, 5)));
 
-    const dnes = new Date();
-    const jeDnes = datum === dnes.toISOString().slice(0, 10);
-    const ted = dnes.getHours() * 60 + dnes.getMinutes();
+    const { datum: dnesniDatum, minutyOdPulnoci: ted } = nyniVPraze();
+    const jeDnes = datum === dnesniDatum;
 
     const volne = vsechnySloty.filter((cas) => {
       if (obsazeneSet.has(cas)) return false;

@@ -352,11 +352,16 @@ img { max-width: 100%; display: block; }
   font-weight: 600;
   color: var(--text-muted);
   text-transform: none;
+  min-width: 0;
 }
 
 .rezervace-form input,
 .rezervace-form select,
 .rezervace-form textarea {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
   font-family: 'Inter', sans-serif;
   font-size: 0.95rem;
   padding: 11px 12px;
@@ -375,7 +380,8 @@ img { max-width: 100%; display: block; }
 
 .rezervace-form select:disabled { opacity: 0.6; }
 
-.form-row { display: grid; gap: 16px; grid-template-columns: 1fr; }
+.form-row { display: grid; gap: 16px; grid-template-columns: 1fr; min-width: 0; }
+.form-row > label { min-width: 0; }
 
 .rez-zprava { margin: 0; font-size: 0.9rem; min-height: 1.2em; }
 .rez-zprava.ok { color: #2f7a3d; }

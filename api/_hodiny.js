@@ -34,4 +34,28 @@ function slotyProDen(datumStr) {
   return sloty;
 }
 
-module.exports = { OTEVIRACI_DOBA, slotyProDen };
+// Server (Vercel) běží v UTC, ale otevírací doba je v pražském čase.
+// Tahle funkce spolehlivě zjistí aktuální datum a čas v Europe/Prague
+// bez ohledu na to, v jaké časové zóně běží samotný server.
+function nyniVPraze() {
+  const now = new Date();
+  const casti = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Prague',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).formatToParts(now);
+
+  const map = {};
+  casti.forEach((c) => { map[c.type] = c.value; });
+
+  return {
+    datum: `${map.year}-${map.month}-${map.day}`,
+    minutyOdPulnoci: Number(map.hour) * 60 + Number(map.minute),
+  };
+}
+
+module.exports = { OTEVIRACI_DOBA, slotyProDen, nyniVPraze };
