@@ -39,7 +39,7 @@ module.exports = async (req, res) => {
 
   try {
     const rezervace = await sql`
-      SELECT id, jmeno, telefon, email, sluzba, datum, cas, poznamka, created_at
+      SELECT id, typ, jmeno, telefon, email, sluzba, datum, cas, poznamka, created_at
       FROM bookings
       ORDER BY datum ASC, cas ASC
     `;

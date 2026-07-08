@@ -18,6 +18,15 @@
   .btn-del { background: #b23b3b; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.78rem; cursor: pointer; }
   .btn-del:hover { background: #8f2d2d; }
   .admin-table-scroll { overflow-x: auto; }
+  .badge-typ { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; }
+  .badge-rezervace { background: #dcefe0; color: #1f6b34; }
+  .badge-blokace { background: #f0e0d4; color: #8a4a1e; }
+  .blok-box { background: #fff; border-radius: 10px; padding: 20px; box-shadow: var(--shadow); margin-bottom: 26px; }
+  .blok-box h2 { font-size: 1.1rem; margin: 0 0 14px; }
+  .blok-form { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; }
+  .blok-form label { display: flex; flex-direction: column; gap: 4px; font-size: 0.82rem; font-weight: 600; color: var(--text-muted); }
+  .blok-form input, .blok-form select { padding: 9px 10px; border: 1px solid var(--border); border-radius: 6px; font-family: 'Inter', sans-serif; }
+  .blok-msg { width: 100%; margin: 8px 0 0; font-size: 0.85rem; }
 </style>
 </head>
 <body>
@@ -26,6 +35,27 @@
       <h1 style="font-size:1.6rem;margin:0;">Rezervace</h1>
       <button class="btn btn-outline" id="obnovit">Obnovit</button>
     </div>
+
+    <div class="blok-box">
+      <h2>Zablokovat termín (dovolená, oběd, volno)</h2>
+      <form id="blok-form" class="blok-form">
+        <label>Datum
+          <input type="date" name="datum" required>
+        </label>
+        <label>Režim
+          <select name="mod" id="blok-mod">
+            <option value="den">Celý den</option>
+            <option value="slot">Jeden čas</option>
+          </select>
+        </label>
+        <label id="blok-cas-label" style="display:none;">Čas
+          <input type="time" name="cas" step="1800">
+        </label>
+        <button type="submit" class="btn btn-gold">Zablokovat</button>
+        <p class="blok-msg" id="blok-msg"></p>
+      </form>
+    </div>
+
     <div id="obsah">Načítám…</div>
   </div>
 
@@ -40,25 +70,32 @@ async function nacistRezervace() {
       return;
     }
     if (data.rezervace.length === 0) {
-      obsah.innerHTML = '<p class="admin-empty">Zatím žádné rezervace.</p>';
+      obsah.innerHTML = '<p class="admin-empty">Zatím žádné rezervace ani blokace.</p>';
       return;
     }
-    const radky = data.rezervace.map((r) => `
+    const radky = data.rezervace.map((r) => {
+      const jeBlokace = r.typ === 'blokace';
+      const badge = jeBlokace
+        ? '<span class="badge-typ badge-blokace">Blokace</span>'
+        : '<span class="badge-typ badge-rezervace">Rezervace</span>';
+      return `
       <tr data-id="${r.id}">
+        <td>${badge}</td>
         <td>${r.datum}</td>
         <td>${r.cas}</td>
-        <td>${escapeHtml(r.jmeno)}</td>
-        <td>${escapeHtml(r.sluzba)}</td>
-        <td><a href="tel:${escapeHtml(r.telefon)}">${escapeHtml(r.telefon)}</a></td>
-        <td><a href="mailto:${escapeHtml(r.email)}">${escapeHtml(r.email)}</a></td>
-        <td>${escapeHtml(r.poznamka || '—')}</td>
-        <td><button class="btn-del" onclick="smazatRezervaci(${r.id})">Zrušit</button></td>
+        <td>${jeBlokace ? '—' : escapeHtml(r.jmeno || '')}</td>
+        <td>${jeBlokace ? '—' : escapeHtml(r.sluzba || '')}</td>
+        <td>${jeBlokace ? '—' : `<a href="tel:${escapeHtml(r.telefon || '')}">${escapeHtml(r.telefon || '')}</a>`}</td>
+        <td>${jeBlokace ? '—' : `<a href="mailto:${escapeHtml(r.email || '')}">${escapeHtml(r.email || '')}</a>`}</td>
+        <td>${jeBlokace ? '—' : escapeHtml(r.poznamka || '—')}</td>
+        <td><button class="btn-del" onclick="smazatRezervaci(${r.id})">${jeBlokace ? 'Odblokovat' : 'Zrušit'}</button></td>
       </tr>
-    `).join('');
+    `;
+    }).join('');
     obsah.innerHTML = `
       <div class="admin-table-scroll">
         <table class="admin-table">
-          <thead><tr><th>Datum</th><th>Čas</th><th>Jméno</th><th>Služba</th><th>Telefon</th><th>E-mail</th><th>Poznámka</th><th></th></tr></thead>
+          <thead><tr><th>Typ</th><th>Datum</th><th>Čas</th><th>Jméno</th><th>Služba</th><th>Telefon</th><th>E-mail</th><th>Poznámka</th><th></th></tr></thead>
           <tbody>${radky}</tbody>
         </table>
       </div>
@@ -69,7 +106,7 @@ async function nacistRezervace() {
 }
 
 async function smazatRezervaci(id) {
-  if (!confirm('Opravdu zrušit tuto rezervaci?')) return;
+  if (!confirm('Opravdu to zrušit / odblokovat?')) return;
   await fetch('/api/admin-bookings?id=' + id, { method: 'DELETE' });
   nacistRezervace();
 }
@@ -81,6 +118,33 @@ function escapeHtml(str) {
 }
 
 document.getElementById('obnovit').addEventListener('click', nacistRezervace);
+
+document.getElementById('blok-mod').addEventListener('change', (e) => {
+  document.getElementById('blok-cas-label').style.display = e.target.value === 'slot' ? 'flex' : 'none';
+});
+
+document.getElementById('blok-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const msg = document.getElementById('blok-msg');
+  const fd = new FormData(e.target);
+  const payload = Object.fromEntries(fd.entries());
+  msg.textContent = 'Ukládám…';
+  try {
+    const res = await fetch('/api/admin-blokace', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'Chyba');
+    msg.textContent = `Zablokováno (${data.zablokovano} termín/ů).`;
+    e.target.reset();
+    nacistRezervace();
+  } catch (err) {
+    msg.textContent = 'Chyba: ' + err.message;
+  }
+});
+
 nacistRezervace();
 </script>
 </body>
