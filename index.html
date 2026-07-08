@@ -22,11 +22,12 @@
       <a href="#o-nas">O nás</a>
       <a href="#tym">Tým</a>
       <a href="#cenik">Ceník</a>
+      <a href="#rezervace">Rezervace</a>
       <a href="#fotky">Fotky</a>
       <a href="#shop">Shop</a>
       <a href="#kontakt">Kontakt</a>
     </nav>
-    <a href="tel:+420000000000" class="btn btn-gold header-cta">📞 <span class="cta-text">Objednat se</span></a>
+    <a href="#rezervace" class="btn btn-gold header-cta">📅 <span class="cta-text">Rezervovat</span></a>
   </div>
 </header>
 
@@ -40,7 +41,7 @@
       <h1>Střih &amp; vousy</h1>
       <p class="script-line">by Iron &amp; Oak</p>
       <div class="hero-actions">
-        <a href="tel:+420000000000" class="btn btn-gold">Objednat se telefonicky</a>
+        <a href="#rezervace" class="btn btn-gold">Rezervovat termín</a>
         <a href="#sluzby-info" class="btn btn-outline">Naše služby</a>
       </div>
     </div>
@@ -116,6 +117,53 @@
     </div>
   </section>
 
+  <section id="rezervace" class="section section-tint">
+    <div class="wrap rezervace-wrap">
+      <p class="eyebrow center">Rezervace</p>
+      <h2 class="center">Objednejte se online</h2>
+      <p class="muted center intro-note">Vyberte si službu, datum a volný čas — potvrzení dostanete na e-mail.</p>
+      <form id="rezervace-form" class="rezervace-form reveal">
+        <div class="form-row">
+          <label>Jméno
+            <input type="text" name="jmeno" required>
+          </label>
+          <label>Telefon
+            <input type="tel" name="telefon" required>
+          </label>
+        </div>
+        <label>E-mail
+          <input type="email" name="email" required>
+        </label>
+        <label>Služba
+          <select name="sluzba" required>
+            <option value="">Vyberte službu…</option>
+            <option>Klasický střih</option>
+            <option>Střih &amp; vousy</option>
+            <option>Holení břitvou</option>
+            <option>Úprava vousů</option>
+            <option>Dětský střih</option>
+            <option>Horký ručník</option>
+          </select>
+        </label>
+        <div class="form-row">
+          <label>Datum
+            <input type="date" name="datum" id="rez-datum" required>
+          </label>
+          <label>Čas
+            <select name="cas" id="rez-cas" required disabled>
+              <option value="">Nejdřív vyberte datum</option>
+            </select>
+          </label>
+        </div>
+        <label>Poznámka (nepovinné)
+          <textarea name="poznamka" rows="3"></textarea>
+        </label>
+        <button type="submit" class="btn btn-gold">Odeslat rezervaci</button>
+        <p id="rez-zprava" class="rez-zprava" role="status"></p>
+      </form>
+    </div>
+  </section>
+
   <section id="fotky" class="section section-dark">
     <div class="wrap">
       <p class="eyebrow eyebrow-light center">Fotky</p>
@@ -164,7 +212,7 @@
     <div class="wrap">
       <h2>Řemeslo se nedá uspěchat.</h2>
       <p>Přijďte si vychutnat střih tak, jak má vypadat.</p>
-      <a href="tel:+420000000000" class="btn btn-gold">Objednat se</a>
+      <a href="#rezervace" class="btn btn-gold">Rezervovat</a>
     </div>
   </section>
 

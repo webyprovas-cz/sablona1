@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — rezervace | Iron &amp; Oak</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+<style>
+  body { background: #f5efe6; }
+  .admin-wrap { max-width: 960px; margin: 0 auto; padding: 40px 20px; }
+  .admin-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: var(--shadow); font-size: 0.9rem; }
+  .admin-table th, .admin-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
+  .admin-table th { background: var(--dark); color: var(--text-light); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.06em; }
+  .admin-table tr:last-child td { border-bottom: none; }
+  .admin-empty { padding: 30px; text-align: center; color: var(--text-muted); }
+  .admin-actions { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .btn-del { background: #b23b3b; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.78rem; cursor: pointer; }
+  .btn-del:hover { background: #8f2d2d; }
+  .admin-table-scroll { overflow-x: auto; }
+</style>
+</head>
+<body>
+  <div class="admin-wrap">
+    <div class="admin-actions">
+      <h1 style="font-size:1.6rem;margin:0;">Rezervace</h1>
+      <button class="btn btn-outline" id="obnovit">Obnovit</button>
+    </div>
+    <div id="obsah">Načítám…</div>
+  </div>
+
+<script>
+async function nacistRezervace() {
+  const obsah = document.getElementById('obsah');
+  try {
+    const res = await fetch('/api/admin-bookings');
+    const data = await res.json();
+    if (!data.ok) {
+      obsah.innerHTML = '<p class="admin-empty">Chyba: ' + (data.error || 'nepodařilo se načíst') + '</p>';
+      return;
+    }
+    if (data.rezervace.length === 0) {
+      obsah.innerHTML = '<p class="admin-empty">Zatím žádné rezervace.</p>';
+      return;
+    }
+    const radky = data.rezervace.map((r) => `
+      <tr data-id="${r.id}">
+        <td>${r.datum}</td>
+        <td>${r.cas}</td>
+        <td>${escapeHtml(r.jmeno)}</td>
+        <td>${escapeHtml(r.sluzba)}</td>
+        <td><a href="tel:${escapeHtml(r.telefon)}">${escapeHtml(r.telefon)}</a></td>
+        <td><a href="mailto:${escapeHtml(r.email)}">${escapeHtml(r.email)}</a></td>
+        <td>${escapeHtml(r.poznamka || '—')}</td>
+        <td><button class="btn-del" onclick="smazatRezervaci(${r.id})">Zrušit</button></td>
+      </tr>
+    `).join('');
+    obsah.innerHTML = `
+      <div class="admin-table-scroll">
+        <table class="admin-table">
+          <thead><tr><th>Datum</th><th>Čas</th><th>Jméno</th><th>Služba</th><th>Telefon</th><th>E-mail</th><th>Poznámka</th><th></th></tr></thead>
+          <tbody>${radky}</tbody>
+        </table>
+      </div>
+    `;
+  } catch (e) {
+    obsah.innerHTML = '<p class="admin-empty">Nepodařilo se načíst rezervace.</p>';
+  }
+}
+
+async function smazatRezervaci(id) {
+  if (!confirm('Opravdu zrušit tuto rezervaci?')) return;
+  await fetch('/api/admin-bookings?id=' + id, { method: 'DELETE' });
+  nacistRezervace();
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+document.getElementById('obnovit').addEventListener('click', nacistRezervace);
+nacistRezervace();
+</script>
+</body>
+</html>
